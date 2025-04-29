@@ -1,0 +1,40 @@
+- hosts: web
+  become: true
+
+  tasks:
+    - name: Install system packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+          - nginx
+          - git
+          - php-cli
+          - php-mbstring
+          - php-xml
+          - php-mysql
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Initialize Docker Swarm
+      shell: docker swarm init || true
+
+    - name: Copy NGINX configuration
+      copy:
+        src: nginx/yii2app.conf
+        dest: /etc/nginx/conf.d/yii2app.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Restart NGINX
+      service:
+        name: nginx
+        state: restarted
